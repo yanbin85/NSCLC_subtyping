@@ -11,7 +11,7 @@ CN_LUSC <- read.table("/home/data/yanbin/NSCLC_Dataset/LUSC/CN/TCGA-LUSC.gene-le
 common_genes <- intersect(rownames(CN_LUAD), rownames(CN_LUSC))
 CN <- cbind(CN_LUAD[common_genes, ], CN_LUSC[common_genes, ])
 CN<- cbind(CN_LUAD,CN_LUSC)
-write.csv(CN,"CN.csv")
+#save(CN,file="CN.rda")
 # NSCLC聚类一 ----------------------------------------------------------------
 # 数据过滤与高变基因筛选 
 #过滤掉包含NA值的基因
@@ -57,8 +57,8 @@ gene_mapping2 <- data.frame(id=gene_mapping$id,gene=gene_mapping$gene)
 #CN_top5000 <- CN_filtered[rev(order(mads))[1:5000], ] # 提取前5000个基因
 
 #hist(mads, breaks = 100)
-#sds <-apply(CN_filtered, 1, sd, na.rm = TRUE) # 计算每一行的MAD值
-#hist(sds, breaks = 100)
+sds <-apply(CN_filtered, 1, sd, na.rm = TRUE) # 计算每一行的sd值
+hist(sds, breaks = 100)
 
 # 热图绘制 
 setwd("/home/yanbin/NSCLC_subtyping/CN/NSCLC")
@@ -145,6 +145,9 @@ dev.off()
 setwd("/home/yanbin/NSCLC_subtyping/CN/NSCLC")
 #筛选聚类所用高变基因（突变频率前百分之10，5794个）
 high_freq_genes2 <- CN_filtered[rev(order(CN_filtered$variant_freq))[1:(0.1*nrow(CN_filtered))], ] 
+#筛选top3000分子用于多组学聚类
+CN_top3000 <- CN_filtered[rev(order(CN_filtered$variant_freq))[1:3000], ] 
+save(CN_top3000, file = "CN_top3000.rda")
 # high_freq_genes2 <- CN_filtered%>% 
 #   filter(variant_freq >= 0.75) %>% 
 #   arrange(desc(variant_freq))

@@ -10,7 +10,7 @@ library(ComplexHeatmap)
 library(tibble)
 #LUAD与LUSC数据读取与合并
 GEXP <- read.table("/home/data/yanbin/NSCLC_Dataset/LUNG_GEXP/TCGA.LUNG.sampleMap_HiSeqV2_PANCAN", header = TRUE, sep = "\t",row.names=1)
-
+#save(GEXP,file="GEXP.rda")
 #原数据已经过pan-cancer normalized log2(norm_count+1)转换
 
 #z-score再次对每一行进行归一化

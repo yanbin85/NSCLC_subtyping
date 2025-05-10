@@ -33,7 +33,7 @@ regex_pattern <- paste0("^TCGA-(", paste(nsclc_codes, collapse = "|"), ")-.*")
 nsclc_samples <- grep(regex_pattern, colnames(MUTA_Pan), value = TRUE, ignore.case = TRUE)
 # 提取子集
 MUTA_NSCLC <- MUTA_Pan[, nsclc_samples]
-write.csv(MUTA_NSCLC,"MUTA_NSCLC.csv")
+#save(MUTA_NSCLC,file="MUTA_NSCLC.rda")
 
 
 # 数据过滤 --------------------------------------------------------------------

@@ -5,6 +5,7 @@ library(tibble)
 PROT_LUAD <- read.table("/home/data/yanbin/NSCLC_Dataset/LUAD/PROT/TCGA-LUAD.protein.tsv", header = TRUE, sep = "\t",row.names=1)
 PROT_LUSC <- read.table("/home/data/yanbin/NSCLC_Dataset/LUSC/PROT/TCGA-LUSC.protein.tsv", header = TRUE, sep = "\t",row.names=1)
 PROT <- cbind(PROT_LUAD,PROT_LUSC)
+save(PROT,file="PROT.rda")
 #移除含有na值的蛋白
 PROT_filtered <- na.omit(PROT)
 
@@ -21,7 +22,7 @@ PROT_filtered <- na.omit(PROT)
 # 绘制热图 --------------------------------------------------------------------
 setwd("/home/yanbin/NSCLC_subtyping/PROT")
 
-write.csv(PROT,"PROT.csv")
+
 # mads <-apply(PROT_filtered, 1, mad) 
 # hist(mads,breaks=100)
 # heatmap_input<- PROT_zscore[rev(order(mads)), ] #按sd值排序

@@ -20,7 +20,9 @@ MET_LUSC <- as.data.frame(MET_LUSC)
 rownames(MET_LUSC) <- MET_LUSC[[1]]
 MET_LUSC <- MET_LUSC[, -1]
 MET <- cbind(MET_LUAD,MET_LUSC)
-write.csv(MET,"MET.csv")
+
+#save(MET,file = "MET.rda")
+
 #数据过滤
 # 允许每个探针最多10%样本含NA
 #max_na_samples <- ceiling(0.1 * ncol(MET))

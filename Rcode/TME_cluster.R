@@ -1,3 +1,7 @@
+library(ComplexHeatmap)
+library(ConsensusClusterPlus)
+library(circlize)
+install.packages("circlize")
 #读入数据与重命名
 load("/home/data/yanbin/NSCLC_Dataset/LUAD/TME/IOBR.expr.tme_combine.TCGA_LUAD.Rdata")
 luad.expr.cibersort <- expr.cibersort
@@ -28,7 +32,7 @@ lusc_data <- t(lusc.expr.tme_combine)
 colnames(lusc_data) <- lusc_data[1,]
 lusc_data <- lusc_data[-1,]
 NSCLC <- as.data.frame(cbind(luad_data,lusc_data))
-write.csv(NSCLC,"TME.csv")
+#save(NSCLC,file="TME.rda")
 
 luad_cibersort_data <- t(luad.expr.cibersort)
 colnames(luad_cibersort_data) <- luad_cibersort_data[1,]
@@ -89,7 +93,7 @@ Heatmap(as.matrix(NSCLC_cibersort),
         column_title = c("LUAD", "LUSC"),  # 分组标题
         show_column_names = FALSE,
         row_names_gp = gpar(fontsize = 10),
-        col = colorRamp2(c(0,0.05 , 1), c("blue","white" , "red")))  # 颜色映射
+        col = colorRamp2(c(0,0.05, 1), c("blue","white" , "red")))  # 颜色映射
 dev.off()
 
 
