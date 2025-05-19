@@ -79,7 +79,7 @@ column_ha <- HeatmapAnnotation(
   annotation_name_side = "left"
 )
 #绘图
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/COUNTS_new")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/COUNTS_new")
 pdf("GEXP2_top1000_heatmap.pdf",width = 12,height = 9)
 Heatmap(
   as.matrix(heatmap_input),
@@ -98,7 +98,7 @@ dev.off()
 
 
 #########NSCLC前20%可变性最大的基因聚类#########
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/COUNTS_new/cluster_results")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/COUNTS_new/cluster_results")
 #为了选择信息最丰富的基因进行类检测，将数据集减少到前20%可变性最大的基因（通过中值绝对偏差 - MAD来衡量）
 cluster_input <- GEXP_zscore[rev(order(mads))[1:(0.2*nrow(GEXP_zscore))], ] # 提取前20%基因（4106个）
 #聚类
@@ -116,7 +116,7 @@ results1 = ConsensusClusterPlus(as.matrix(cluster_input),
                                 seed = 1262118388.71279, 
                                 tmyPal=NULL, writeTable=TRUE,
                                 plot = "pdf")
-
+#write.csv(results1[[4]][["consensusClass"]],"GEXP.cluster.results.csv")
 
 #计算聚类一致性 (cluster-consensus) 和样品一致性 (item-consensus)
 icl = calcICL(results1, title = "consensus_cluster", plot = "pdf")
@@ -143,5 +143,5 @@ icl[["itemConsensus"]][1:5,]
 
 
 #保存工作空间####
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/COUNTS_new")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/COUNTS_new")
 save.image("NSCLC_GEXP2_Clustering.RData")

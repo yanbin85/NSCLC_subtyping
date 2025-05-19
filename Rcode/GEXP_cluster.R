@@ -79,7 +79,7 @@ column_ha <- HeatmapAnnotation(
      annotation_name_side = "left"
      )
 #绘图
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/TPM")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/TPM")
 pdf("GEXP_top1000_heatmap.pdf",width = 12,height = 9)
 Heatmap(
      as.matrix(heatmap_input),
@@ -107,7 +107,7 @@ heatmap_input2 <- heatmap_input2 %>%
 heatmap_input2 <- heatmap_input2[,-1]
 
 #绘图
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/TPM")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/TPM")
 pdf("GEXP_top1000_heatmap2.pdf",width = 12,height = 9)
 Heatmap(
   as.matrix(heatmap_input2),
@@ -123,7 +123,7 @@ Heatmap(
 )
 dev.off()
 ######NSCLC总基因聚类######
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/TPM/results")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/TPM/results")
 #ConsensusClusterPlus聚类
 title=tempdir()
 results = ConsensusClusterPlus(GEXP, 
@@ -163,7 +163,7 @@ optK = Kvec[which.min(PAC)]  # 理想的K值为15
 
 
 #########NSCLC前5%可变性最大的基因聚类#########
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/TPM/results1")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/TPM/results1")
 #为了选择信息最丰富的基因进行类检测，将数据集减少到前5%可变性最大的基因（通过中值绝对偏差 - MAD来衡量）
 mads <-apply(GEXP_zscore, 1, mad) # 计算每一行的MAD值
 GEXP1 <- GEXP_zscore[rev(order(mads))[1:(0.05*nrow(GEXP_zscore))], ] # 提取前5%基因（3033个）
@@ -203,7 +203,7 @@ for(i in Kvec){
 optK1 = Kvec[which.min(PAC)]  # 理想的K值为20
 
 #########LUAD聚类######
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/TPM/LUAD_results")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/TPM/LUAD_results")
 #归一化
 GEXP_LUAD1<-sweep(GEXP_LUAD, 1, apply(GEXP_LUAD, 1, median, na.rm = T))
 GEXP_LUAD1<-as.matrix(GEXP_LUAD1)
@@ -244,7 +244,7 @@ for(i in Kvec){
 optK_LUAD = Kvec[which.min(PAC)]  # 理想的K值为20
 
 #########PCA降维后的50%NSCLC高变基因聚类######
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/TPM/results2")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/TPM/results2")
 #根据mad值选取前50%高变异基因
 mads <-apply(GEXP, 1, mad) # 计算每一行的MAD值
 GEXP_filtered <- GEXP[rev(order(mads))[1:30330], ] # 提取前50%的基因
@@ -303,9 +303,9 @@ for(i in Kvec){
 } 
 
 optK2 = Kvec[which.min(PAC)]  # 理想的K值为20
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/TPM")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/TPM")
 
 
 #保存工作空间####
-setwd("/home/yanbin/NSCLC_subtyping/GEXP/TPM")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/GEXP/TPM")
 save.image("NSCLC_GEXP_Clustering.RData")

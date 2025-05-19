@@ -20,7 +20,7 @@ PROT_filtered <- na.omit(PROT)
 # PROT_zscore <- sweep(PROT_zscore, 1, row_sds, "/")    # 除以标准差
 
 # 绘制热图 --------------------------------------------------------------------
-setwd("/home/yanbin/NSCLC_subtyping/PROT")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/PROT")
 
 
 # mads <-apply(PROT_filtered, 1, mad) 
@@ -82,7 +82,7 @@ dev.off()
 
 
 # ConsensusCluserPlus聚类 ---------------------------------------------------
-setwd("/home/yanbin/NSCLC_subtyping/PROT/Cluster_results")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/PROT/Cluster_results")
 input_data <- as.matrix(PROT_filtered)
 title=tempdir()
 result <- ConsensusClusterPlus(
@@ -108,24 +108,16 @@ icl[["clusterConsensus"]][1:5,]
 dim(icl[["itemConsensus"]])
 icl[["itemConsensus"]][1:5,]
 
-#根据PAC = Proportion of ambiguous clustering 模糊聚类比例确定最佳k值（有时候会失灵）
-Kvec = 2:10
-x1 = 0.1; x2 = 0.9        
-PAC = rep(NA,length(Kvec)) 
-names(PAC) = paste("K=",Kvec,sep="")  
-for(i in Kvec){
-  M = result[[i]]$consensusMatrix
-  Fn = ecdf(M[lower.tri( M)])          # M 为计算出共识矩阵
-  PAC[i-1] = Fn(x2) - Fn(x1)
-} 
+#write.csv(result[[4]][["consensusClass"]],"PROT.cluster.results.csv")
 
-optK = Kvec[which.min(PAC)]  # 理想的K值为10
 
-setwd("/home/yanbin/NSCLC_subtyping/PROT")
+
+
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/PROT")
 save.image("NSCLC_PROT_Clustering.RData")
 
 # 
-# > setwd("/home/yanbin/NSCLC_subtyping/PROT/test")
+# > setwd("~/NSCLC_subtyping/Unsupervised Clustering/test")
 # > input_data <- t(as.matrix(PROT_filtered))
 # > title=tempdir()
 # > result <- ConsensusClusterPlus(

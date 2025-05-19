@@ -23,7 +23,7 @@ lusc.expr.mcp <- expr.mcp
 lusc.expr.quantiseq <- expr.quantiseq
 lusc.expr.timer <- expr.timer
 lusc.expr.tme_combine <- expr.tme_combine
-setwd("/home/yanbin/NSCLC_subtyping/TME")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/TME")
 #数据合并
 luad_data <- t(luad.expr.tme_combine)
 colnames(luad_data) <- luad_data[1,]
@@ -98,7 +98,7 @@ dev.off()
 
 
 # ConsensusClusterPlus聚类 --------------------------------------------------
-setwd("/home/yanbin/NSCLC_subtyping/TME/Cluster_results")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/TME/Cluster_results")
 #聚类
 title=tempdir()
 inputdata <- as.matrix(NSCLC)
@@ -132,6 +132,7 @@ icl[["clusterConsensus"]][1:5,]
 dim(icl[["itemConsensus"]])
 icl[["itemConsensus"]][1:5,]
 
+#write.csv(results[[4]][["consensusClass"]],"TME.cluster.results.csv")
 #根据PAC = Proportion of ambiguous clustering 模糊聚类比例确定最佳k值（有时候会失灵）
 Kvec = 2:10
 x1 = 0.1; x2 = 0.9        # threshold defining the intermediate sub-interval
@@ -146,10 +147,10 @@ for(i in Kvec){
 optK = Kvec[which.min(PAC)]  # 理想的K值为2
 
 # 保存工作空间 ------------------------------------------------------------------
-setwd("/home/yanbin/NSCLC_subtyping/TME")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/TME")
 save.image("NSCLC_TME_Clustering.RData")
 # 
-setwd("/home/yanbin/NSCLC_subtyping/TME/test")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/TME/test")
 聚类
  title=tempdir()
  inputdata2 <- as.matrix(NSCLC)

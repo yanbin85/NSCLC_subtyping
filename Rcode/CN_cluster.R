@@ -1,10 +1,10 @@
-install.packages("ComplexHeatmap")
-library(ComplexHeatmap)
+
+library(ComplexHeatmapp)
 library(ConsensusClusterPlus)
 library(dplyr)
 library(tibble)
 library(readr)
-setwd("/home/yanbin/NSCLC_subtyping/CN/")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/CN/")
 #LUAD与LUSC数据读取与合并
 CN_LUAD <- read.table("/home/data/yanbin/NSCLC_Dataset/LUAD/CN/TCGA-LUAD.gene-level_ascat3.tsv", header = TRUE, sep = "\t",row.names=1)
 CN_LUSC <- read.table("/home/data/yanbin/NSCLC_Dataset/LUSC/CN/TCGA-LUSC.gene-level_ascat3.tsv", header = TRUE, sep = "\t",row.names=1)
@@ -61,7 +61,7 @@ sds <-apply(CN_filtered, 1, sd, na.rm = TRUE) # 计算每一行的sd值
 hist(sds, breaks = 100)
 
 # 热图绘制 
-setwd("/home/yanbin/NSCLC_subtyping/CN/NSCLC")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/CN/NSCLC")
 #分组
 # 肺腺癌的项目代码列表
 luad_codes <- c(
@@ -142,7 +142,7 @@ dev.off()
 
 
 # ConsensusClusterPlus聚类 
-setwd("/home/yanbin/NSCLC_subtyping/CN/NSCLC")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/CN/NSCLC")
 #筛选聚类所用高变基因（突变频率前百分之10，5794个）
 high_freq_genes2 <- CN_filtered[rev(order(CN_filtered$variant_freq))[1:(0.1*nrow(CN_filtered))], ] 
 #筛选top3000分子用于多组学聚类
@@ -174,7 +174,7 @@ icl[["clusterConsensus"]][1:5,]
 
 dim(icl[["itemConsensus"]])
 icl[["itemConsensus"]][1:5,]
-
+write.csv(results1[[5]][["consensusClass"]],"CN.cluster.results.csv")
 
 #根据PAC = Proportion of ambiguous clustering 模糊聚类比例确定最佳k值（有时候会失灵）
 Kvec = 2:10
@@ -194,7 +194,7 @@ optK1 = Kvec[which.min(PAC)]  # 理想的K值为10
 
 
 # NSCLC聚类二 ----------------------------------------------------------------
-setwd("/home/yanbin/NSCLC_subtyping/CN/NSCLC2")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/CN/NSCLC2")
 #对原始拷贝数数据进行PCA
 pca_result <- prcomp(t(CN_filtered), scale = TRUE)  # scale=TRUE标准化数据
 
@@ -261,7 +261,7 @@ high_freq_genesLUAD <- LUAD_filtered%>%
   filter(variant_freq >= 0.35) %>% 
   arrange(desc(variant_freq))
 
-setwd("/home/yanbin/NSCLC_subtyping/CN/LUAD")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/CN/LUAD")
 title=tempdir()
 results1 = ConsensusClusterPlus(as.matrix(high_freq_geneLUAD), 
                                 maxK = 10, 
@@ -277,7 +277,7 @@ results1 = ConsensusClusterPlus(as.matrix(high_freq_geneLUAD),
 
 
 # LUSC聚类 ------------------------------------------------------------------
-setwd("/home/yanbin/NSCLC_subtyping/CN/LUSC")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/CN/LUSC")
 LUSC_filtered <- CN_LUAD %>% 
   filter_all(all_vars(!is.na(.)))
 dim(LUSC_filtered)  # 查看最终维度
@@ -314,6 +314,6 @@ results1 = ConsensusClusterPlus(as.matrix(high_freq_genesLUSC),
 
 
 #保存工作空间
-setwd("/home/yanbin/NSCLC_subtyping/CN")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/CN")
 save.image("NSCLC_CN_Clustering.RData")
 

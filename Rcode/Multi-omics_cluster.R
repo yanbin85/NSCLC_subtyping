@@ -7,21 +7,21 @@ library(MOVICS)
 library(dplyr)
 library(readr)
 library(tibble)
-setwd("~/NSCLC_subtyping/MULTI-OMICS/inputdata")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/inputdata")
 
 # 读取并处理各组学数据 --------------------------------------------------------------
-load("~/NSCLC_subtyping/MULTI-OMICS/inputdata/GEXP.rda")
-load("~/NSCLC_subtyping/MULTI-OMICS/inputdata/MUTA.rda")
+load("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/inputdata/GEXP.rda")
+load("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/inputdata/MUTA.rda")
 MUTA <- MUTA_NSCLC
 rm(MUTA_NSCLC)
 gc()
-load("~/NSCLC_subtyping/MULTI-OMICS/inputdata/MET.rda")
-load("~/NSCLC_subtyping/MULTI-OMICS/inputdata/PROT.rda")
-load("~/NSCLC_subtyping/MULTI-OMICS/inputdata/TME.rda")
+load("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/inputdata/MET.rda")
+load("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/inputdata/PROT.rda")
+load("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/inputdata/TME.rda")
 TME <- NSCLC
 rm(NSCLC)
 gc()
-load("~/NSCLC_subtyping/MULTI-OMICS/inputdata/CN.rda")
+load("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/inputdata/CN.rda")
 
 #临床数据读取与合并
 luad_clinical <- read.table("/home/data/yanbin/NSCLC_Dataset/LUAD/PHENO/clinical/TCGA-LUAD.clinical.tsv",
@@ -127,6 +127,8 @@ samples_PROT <- colnames(PROT)
 # 将样本列表合并为一个列表
 sample_list <- list(samples_GEXP, samples_MUTA, samples_CNV, 
                     samples_TME, samples_MET, samples_PROT)
+#save(sample_list,file="sample_list.rda")
+
 # 计算所有数据集的共有样本
 common_samples <- Reduce(intersect, sample_list)
 # 检查共有样本数量
@@ -138,6 +140,7 @@ if (has_duplicates) {
 } else {
   print("所有样本ID唯一。")
 }
+#save(common_samples,file="common_saples.rda")
 # 筛选各数据集并严格对齐列顺序
 GEXP_common <- GEXP_zscore[, common_samples]
 MUTA_common <- MUTA[, common_samples]
@@ -268,8 +271,8 @@ str(multiomics.data, max.level = 1)
 
 
 # 获得共识分型 ------------------------------------------------------------------
-setwd("~/NSCLC_subtyping/MULTI-OMICS")
-#使用getClustNum()确定最佳亚型数量为4
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS")
+#使用getClustNum()确定最佳亚型数量为5
 optk.nsclc <- getClustNum(data        = multiomics.data, # 6种组学数据
                          is.binary   = c(FALSE,TRUE,TRUE,FALSE,FALSE,FALSE), #第二种数据是二分类的
                          try.N.clust = 2:8, # 尝试亚型数量，从2到8
@@ -279,7 +282,7 @@ save(optk.nsclc,file="optk.nsclc.rda")
 #利用10种算法进行聚类
 #iClusterBayes算法
 iClusterBayes.res <- getiClusterBayes(data        = multiomics.data,
-                                      N.clust     = 4,
+                                      N.clust     = 5,
                                       type        =  c("gaussian", "binomial","binomial","gaussian", "gaussian","gaussian" ),
                                       n.burnin    = 1800,
                                       n.draw      = 1200,
@@ -291,29 +294,35 @@ iClusterBayes.res <- getiClusterBayes(data        = multiomics.data,
 #同时使用s剩下9种算法进行分型
 moic.res.list <- getMOIC(data        = multiomics.data,
                          methodslist = list("SNF", "PINSPlus", "NEMO", "COCA", "LRAcluster", "ConsensusClustering", "IntNMF", "CIMLR", "MoCluster"), #9种算法
-                         N.clust     = 4, #聚类数选择4
+                         N.clust     = 5, #聚类数选择4
                          type        = c("gaussian", "binomial","binomial","gaussian", "gaussian","gaussian" ))
 
 #整合iClusterBayes结果并保存
 moic.res.list <- append(moic.res.list, 
                         list("iClusterBayes" = iClusterBayes.res))
-save(moic.res.list, file = "moic.res.list.rda")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/outputdata")
+save(moic.res.list, file = "moic.res.list.rda")#更改
 
 
 # 可视化 ---------------------------------------------------------------------
 #绘制一致性热图
 load(file = "moic.res.list.rda")
+#整合10种算法分型结果获得共识亚型
 cmoic.nsclc <- getConsensusMOIC(moic.res.list = moic.res.list,
                                fig.name      = "CONSENSUS HEATMAP",
                                distance      = "euclidean",
                                linkage       = "average")
-#计算Silhouette判断分型质量。
+
+save(cmoic.nsclc,file="cmoic.cluster.results.rda")#更改
+#计算Silhouette判断分型质量
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS")
 getSilhouette(sil      = cmoic.nsclc$sil, # a sil object returned by getConsensusMOIC()
               fig.path = getwd(),
               fig.name = "SILHOUETTE",
               height   = 5.5,
               width    = 5)
-#多组学分型热图
+
+#绘制多组学综合热图
 # β值矩阵转换为M值矩阵
 indata <- multiomics.data
 indata$MET<- log2(indata$MET/ (1 - indata$MET))
@@ -327,7 +336,9 @@ plotdata <- getStdiz(data       = indata,
 sapply(plotdata, function(x) sum(is.na(x)) / length(x))
 #去除缺失值
 plotdata$MET <- na.omit(plotdata$MET)
-
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS/outputdata")
+save(multiomics.data,file="multiomics.data.rda")
+save(plotdata,file="normalized.multiomics.data.rda")#更改
 
 # # 替换Inf/NaN为合理值（如表达数据）
 # plotdata$GEXP[is.infinite(plotdata$GEXP)] <- max(plotdata$GEXP[is.finite(plotdata$GEXP)], na.rm=TRUE)
@@ -362,7 +373,8 @@ PROT.col <- c("#00FF00", "#008000", "#000000", "#800000", "#FF0000")
 
 col.list   <- list(GEXP.col,MUTA.col,CNV.col,TME.col,MET.col,PROT.col)
 
-# 绘制热图
+# 绘制iClsuerBayes热图
+ setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS")
 getMoHeatmap(data          = plotdata,
              row.title     = c("gene expression","somatic mutation","copy number variation","tumor microenvironment","DNA methylation","protein expression"),
              is.binary     = c(FALSE,TRUE,TRUE,FALSE,FALSE,FALSE), 
@@ -373,7 +385,7 @@ getMoHeatmap(data          = plotdata,
              annRow        = annRow, # mark selected features
              clust.res     = iClusterBayes.res$clust.res, # cluster results
              clust.dend    =iClusterBayes.res$clust.dend, # show dendrogram for samples
-             clust.col = c("#2EC4B6",  "#FF9F1C", "#FFA5AB",  "#9D4EDD"),
+             clust.col = c("#2CA02C",  "#FF9F1C", "#FFA5AB",  "#9D4EDD","#118AB2"),
              color         = col.list,
              width         = 10, # width of each subheatmap
              height        = 5, # height of each subheatmap
@@ -381,17 +393,18 @@ getMoHeatmap(data          = plotdata,
 
 
 
-# 绘制热图
+# 绘制共识热图
 getMoHeatmap(data          = plotdata,
              row.title     = c("gene expression","somatic mutation","copy number variation","tumor microenvironment","DNA methylation","protein expression"),
              is.binary     = c(FALSE,TRUE,TRUE,FALSE,FALSE,FALSE), 
              legend.name   = c("mRNA.counts","mutated","varied","tme","M value","rppa value"),
              show.rownames = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
              show.colnames = FALSE, # show no sample names
+             show.col.dend = FALSE,
              annRow        = NULL, # mark selected features
              clust.res     = cmoic.nsclc$clust.res, # cluster results
              clust.dend    = cmoic.nsclc$clust.dend, # show dendrogram for samples
-             clust.col = c("#2EC4B6",  "#FF9F1C", "#FFA5AB",  "#9D4EDD"),
+             clust.col = c("#2CA02C",  "#FF9F1C", "#FFA5AB",  "#9D4EDD","#118AB2"),
              show.row.dend = c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE),
              color         = col.list,
              width         = 10, # width of each subheatmap
@@ -399,6 +412,24 @@ getMoHeatmap(data          = plotdata,
              fig.name      = "COMPREHENSIVE HEATMAP OF ConsensusCluster")
 
 
+getMoHeatmap(data          = plotdata,
+             row.title     = c("gene expression","somatic mutation","copy number variation","tumor microenvironment","DNA methylation","protein expression"),
+             is.binary     = c(FALSE,TRUE,TRUE,FALSE,FALSE,FALSE), 
+             legend.name   = c("mRNA.counts","mutated","varied","tme","M value","rppa value"),
+             show.rownames = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
+             show.colnames = FALSE, # show no sample names
+             show.col.dend = FALSE,
+             annRow        = annRow, # mark selected features（iCluster Bayes）
+             clust.res     = cmoic.nsclc$clust.res, # cluster results
+             clust.dend    = cmoic.nsclc$clust.dend, # show dendrogram for samples
+             clust.col = c("#2CA02C",  "#FF9F1C", "#FFA5AB",  "#9D4EDD","#118AB2"),
+             show.row.dend = c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE),
+             color         = col.list,
+             width         = 10, # width of each subheatmap
+             height        = 5, # height of each subheatmap
+             fig.name      = "COMPREHENSIVE HEATMAP OF ConsensusCluster(iCluster Bayes makers)")
+
+
 #保存工作空间
-setwd("/home/yanbin/NSCLC_subtyping/MULTI-OMICS")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS")
 save.image("NSCLC_MULTIOMICS_Clustering.RData")

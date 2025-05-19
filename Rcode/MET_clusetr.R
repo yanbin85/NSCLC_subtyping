@@ -3,7 +3,7 @@ library(ComplexHeatmap)
 library(tibble)
 library(data.table)
 library(readr)
-setwd("/home/yanbin/NSCLC_subtyping/DNA_MET")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/DNA_MET")
 #LUAD与LUSC数据读取与合并
 #MET_LUAD <- read.table("/home/data/yanbin/NSCLC_Dataset/LUAD/DNA_MET/TCGA-LUAD.methylation450.tsv", header = TRUE, sep = "\t",row.names=1)
 #MET_LUSC <- read.table("/home/data/yanbin/NSCLC_Dataset/LUSC/DNA_MET/TCGA-LUSC.methylation450.tsv", header = TRUE, sep = "\t",row.names=1)
@@ -95,7 +95,7 @@ dev.off()
 
 
 # ConsensuClusterPlus聚类 ---------------------------------------------------
-setwd("/home/yanbin/NSCLC_subtyping/DNA_MET/Cluster_results")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/DNA_MET/Cluster_results")
 #选择前1%可变性最大的基因聚类(8064个)
 cluster_input <- MET_filtered[rev(order(sds))[1:(0.02*nrow(MET_filtered))], ]
 #删除含有NA值的基因（剩下4161个）
@@ -115,6 +115,7 @@ results = ConsensusClusterPlus(as.matrix(cluster_input),
                                 tmyPal=NULL, writeTable=TRUE,
                                 plot = "pdf")
 
+#write.csv(results[[4]][["consensusClass"]],"MET.cluster.results.csv")
 #计算聚类一致性 (cluster-consensus) 和样品一致性 (item-consensus)
 icl = calcICL(results, title = "consensus_cluster", plot = "pdf")
 dim(icl[["clusterConsensus"]])
@@ -144,5 +145,5 @@ gene_mapping2 <- data.frame(id=gene_mapping$`#id`,gene=gene_mapping$gene)
 
 
 #保存工作空间
-setwd("/home/yanbin/NSCLC_subtyping/DNA_MET")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/DNA_MET")
 save.image("NSCLC_MET_Clustering.RData")

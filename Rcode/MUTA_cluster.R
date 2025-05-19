@@ -1,7 +1,10 @@
 library(data.table)
 library(ConsensusClusterPlus)
 library(ComplexHeatmap)
-setwd("/home/yanbin/NSCLC_subtyping/MUTA/")
+library(tibble)
+library(dplyr)
+library(circlize)
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MUTA")
 #读取数据
 MUTA_Pan <- fread(
   "/home/data/yanbin/NSCLC_Dataset/MUTA/mc3.v0.2.8.PUBLIC.nonsilentGene.xena",
@@ -185,7 +188,7 @@ dev.off()
 # 
 
 # ConsensusClusterPlus聚类 --------------------------------------------------
-setwd("/home/yanbin/NSCLC_subtyping/MUTA/Cluster_results/")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MUTA/Cluster_results/")
 title=tempdir()
 results <- ConsensusClusterPlus(
   d = as.matrix(MUTA_filtered),
@@ -199,10 +202,10 @@ results <- ConsensusClusterPlus(
   innerLinkage="ward.D2",
   finalLinkage="ward.D2",
   seed = 1262118388,
-  writeTable = TRUE,
+  writeTable = FALSE,
   plot = "pdf"
 )
-
+#write.csv(results[[4]][["consensusClass"]],"MUTA.cluster.results.csv")
 #计算聚类一致性 (cluster-consensus) 和样品一致性 (item-consensus)
 icl = calcICL(results, title = "consensus_cluster", plot = "pdf")
 dim(icl[["clusterConsensus"]])
@@ -212,5 +215,5 @@ dim(icl[["itemConsensus"]])
 icl[["itemConsensus"]][1:5,]
 
 #保存工作空间####
-setwd("/home/yanbin/NSCLC_subtyping/MUTA")
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MUTA")
 save.image("NSCLC_MUTA_Clustering.RData")
