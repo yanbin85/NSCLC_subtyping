@@ -72,7 +72,8 @@ group_colors <- c("LUAD" = "#377EB8", "LUSC" = "#E41A1C")
 column_ha <- HeatmapAnnotation(
   group = sample_groups,
   col = list(group = group_colors),
-  annotation_name_side = "left"
+  annotation_name_side = "left",
+  show_legend = FALSE
 )
 
 #删除最后三行
@@ -82,7 +83,13 @@ NSCLC_cibersort <- NSCLC_cibersort %>%
   mutate(across(
     where(~ !is.numeric(.)), as.numeric))  # 尝试转换所有列为数值型
 #绘图并保存
-pdf("TME_cibersort_heatmap.pdf",width = 12,height = 9)
+#pdf("TME_cibersort_heatmap.pdf",width = 12,height = 9)
+png("TME_cibersort_heatmap.png",
+    width = 12,          # 宽度（英寸）保持原PDF尺寸
+    height = 9,          # 高度（英寸）
+    units = "in",        # 单位使用英寸
+    res = 600,           # 分辨率(600dpi满足打印级高清需求)
+    type = "cairo")      # 使用抗锯齿渲染
 Heatmap(as.matrix(NSCLC_cibersort),
         name = "TME cibersort",
         clustering_distance_rows = "pearson",
@@ -93,6 +100,11 @@ Heatmap(as.matrix(NSCLC_cibersort),
         column_title = c("LUAD", "LUSC"),  # 分组标题
         show_column_names = FALSE,
         row_names_gp = gpar(fontsize = 10),
+        heatmap_legend_param = list(
+          title_gp = gpar(fontsize = 16),
+          labels_gp = gpar(fontsize = 14),
+          direction = "vertical"
+        ),
         col = colorRamp2(c(0,0.05, 1), c("blue","white" , "red")))  # 颜色映射
 dev.off()
 

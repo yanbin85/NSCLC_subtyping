@@ -308,6 +308,7 @@ save(moic.res.list, file = "moic.res.list.rda")#更改
 #绘制一致性热图
 load(file = "moic.res.list.rda")
 #整合10种算法分型结果获得共识亚型
+setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS")
 cmoic.nsclc <- getConsensusMOIC(moic.res.list = moic.res.list,
                                fig.name      = "CONSENSUS HEATMAP",
                                distance      = "euclidean",
@@ -315,7 +316,7 @@ cmoic.nsclc <- getConsensusMOIC(moic.res.list = moic.res.list,
 
 save(cmoic.nsclc,file="cmoic.cluster.results.rda")#更改
 #计算Silhouette判断分型质量
-setwd("~/NSCLC_subtyping/Unsupervised Clustering/MULTI-OMICS")
+
 getSilhouette(sil      = cmoic.nsclc$sil, # a sil object returned by getConsensusMOIC()
               fig.path = getwd(),
               fig.name = "SILHOUETTE",

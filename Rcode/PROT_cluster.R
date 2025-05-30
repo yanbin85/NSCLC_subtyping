@@ -62,10 +62,17 @@ col_fun <- colorRamp2(
 column_ha <- HeatmapAnnotation(
   group = sample_groups,
   col = list(group = group_colors),
-  annotation_name_side = "left"
+  annotation_name_side = "left",
+  show_legend = FALSE
 )
 #绘图
-pdf("PROT_heatmap.pdf",width = 12,height = 9)
+#pdf("PROT_heatmap.pdf",width = 12,height = 9)
+png("PROT_heatmap.png",
+    width = 12,          # 宽度（英寸）保持原PDF尺寸
+    height = 9,          # 高度（英寸）
+    units = "in",        # 单位使用英寸
+    res = 600,           # 分辨率(600dpi满足打印级高清需求)
+    type = "cairo")   
 Heatmap(
   as.matrix(PROT_filtered),
   name = "protein expression",
@@ -77,6 +84,11 @@ Heatmap(
   cluster_columns = FALSE,  # 禁用列聚类以保持分组顺序
   show_row_names = FALSE,
   show_column_names = FALSE,
+  heatmap_legend_param = list(
+    title_gp = gpar(fontsize = 16),
+    labels_gp = gpar(fontsize = 14),
+    direction = "vertical"
+  )
 )
 dev.off()
 

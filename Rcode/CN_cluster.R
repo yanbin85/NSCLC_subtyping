@@ -1,6 +1,7 @@
 
-library(ComplexHeatmapp)
+library(ComplexHeatmap)
 library(ConsensusClusterPlus)
+library(circlize)
 library(dplyr)
 library(tibble)
 library(readr)
@@ -102,10 +103,17 @@ col_fun <- colorRamp2(
 column_ha <- HeatmapAnnotation(
   group = sample_groups,
   col = list(group = group_colors),
-  annotation_name_side = "left"
+  annotation_name_side = "left",
+  show_legend = FALSE
 )
 
-pdf("CN_top1000_heatmap.pdf",width = 12,height = 9)
+#pdf("CN_top1000_heatmap.pdf",width = 12,height = 9)
+png("CN_top1000_heatmap.png",
+    width = 12,          # 宽度（英寸）保持原PDF尺寸
+    height = 9,          # 高度（英寸）
+    units = "in",        # 单位使用英寸
+    res = 600,           # 分辨率(600dpi满足打印级高清需求)
+    type = "cairo")      # 使用抗锯齿渲染
 Heatmap(
   as.matrix(high_freq_genes),
   name = "Copy Number",
@@ -115,6 +123,13 @@ Heatmap(
   column_title = c("LUAD", "LUSC"),  # 分组标题
   show_column_names  = FALSE,
   show_row_names = FALSE,
+  heatmap_legend_param = list(
+    labels = c("No Mutation", "Mutation"),  # 图例标签
+    at = c(0, 1),# 对应颜色断点
+    title_gp = gpar(fontsize = 16),
+    labels_gp = gpar(fontsize = 14),
+    direction = "vertical"
+  ),
   cluster_columns = FALSE,  # 禁用列聚类以保持分组顺序
 )
 dev.off()

@@ -77,7 +77,8 @@ group_colors <- c("LUAD" = "#377EB8", "LUSC" = "#E41A1C")
 column_ha <- HeatmapAnnotation(
   group = sample_groups,
   col = list(group = group_colors),
-  annotation_name_side = "left"
+  annotation_name_side = "left",
+  show_legend = FALSE
 )
 # 定义颜色映射（0=白色，1=红色）
 col_fun <- colorRamp2(breaks = c(0, 1), colors = c("white", "red"))
@@ -85,7 +86,13 @@ col_fun <- colorRamp2(breaks = c(0, 1), colors = c("white", "red"))
 
 
 # 绘制热图
-pdf("MUTA_heatmap.pdf", width = 12, height = 9)  # 调整宽高
+#pdf("MUTA_heatmap.pdf", width = 12, height = 9)  # 调整宽高
+png("MUTA_heatmap.png",
+    width = 12,          # 宽度（英寸）保持原PDF尺寸
+    height = 9,          # 高度（英寸）
+    units = "in",        # 单位使用英寸
+    res = 600,           # 分辨率(600dpi满足打印级高清需求)
+    type = "cairo")      # 使用抗锯齿渲染
 Heatmap(
   as.matrix(MUTA_filtered),
   name = "non-silent mutation",  # 图例标题
@@ -100,7 +107,10 @@ Heatmap(
   row_names_side = "right",  
   heatmap_legend_param = list(
     labels = c("No Mutation", "Mutation"),  # 图例标签
-    at = c(0, 1)  # 对应颜色断点
+    at = c(0, 1),# 对应颜色断点
+    title_gp = gpar(fontsize = 16),
+    labels_gp = gpar(fontsize = 14),
+    direction = "vertical"
   )
 )
 dev.off()

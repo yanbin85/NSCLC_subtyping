@@ -2,7 +2,11 @@ library(readr)
 library(ComplexHeatmap)
 library(circlize)
 library(tibble)
+library(ggplot2)
+library(tidyverse)
 setwd("~/NSCLC_subtyping/INTERGRATION AND ANALYSIS/")
+
+# 数据处理 --------------------------------------------------------------------
 #GEXP4
 GEXP.cluster.res <- read.table("~/NSCLC_subtyping/INTERGRATION AND ANALYSIS/inputdata/GEXP.cluster.results.csv", header = TRUE, sep = ",",row.names=1)
 #MET4
@@ -99,58 +103,65 @@ commonsample.clinical <- as.data.frame(t(commonsample.clinical))
 colnames(commonsample.clinical) <- substr(colnames(commonsample.clinical), start = 1, stop = 15)
 commonsample.clinical <- commonsample.clinical[, common_samples, drop = FALSE]
 commonsample.clinical <- as.data.frame(t(commonsample.clinical))
-#save(commonsample.clinical,file="commonsample.clinical.rda")
+setwd("~/NSCLC_subtyping/INTERGRATION AND ANALYSIS/outputdata")
+save(commonsample.clinical,file="commonsample.clinical.rda")
 
 #生存数据
-luad_survial <- read.table("/home/data/yanbin/NSCLC_Dataset/LUAD/PHENO/survival/TCGA-LUAD.survival.tsv",
-                           header = TRUE,
-                           sep = "\t",
-                           row.names = 1,
-                           quote = "",    # 禁用引号解析
-                           fill = TRUE,   # 允许填充缺失列
-                           check.names = FALSE)  # 保留列名中的特殊字符
-lusc_survial <- read.table("/home/data/yanbin/NSCLC_Dataset/LUSC/PHENO/survival/TCGA-LUSC.survival.tsv",
-                           header = TRUE,
-                           sep = "\t",
-                           row.names = 1,
-                           quote = "",    # 禁用引号解析
-                           fill = TRUE,   # 允许填充缺失列
-                           check.names = FALSE)  # 保留列名中的特殊字符
-#合并数据
-survial.data <- rbind(luad_survial,lusc_survial)
-#筛选551个样本的数据
-commonsample.survival <- survial.data
-commonsample.survival <- as.data.frame(t(commonsample.survival))
-colnames(commonsample.survival) <- substr(colnames(commonsample.survival), start = 1, stop = 15)
-valid_samples <- intersect(
-  colnames(commonsample.survival),  
-  common_samples              
-)
-if (length(valid_samples) > 0) {
-  commonsample.survival <- commonsample.survival[, valid_samples, drop=FALSE]
-  commonsample.survival <- as.data.frame(t(commonsample.survival))
-} else {
-  stop("错误：无共同样本。检查样本名格式是否一致。")
-}
+pancancer.survival <- read.table("~/NSCLC_subtyping/INTERGRATION AND ANALYSIS/inputdata/Survival_SupplementalTable_S1_20171025_xena_sp", header = TRUE,sep = "\t",row.names = 1,)
+commonsample.survival <- pancancer.survival[common_samples,]
+save(commonsample.survival,file="commonsample.survival.rda")
+# luad_survial <- read.table("/home/data/yanbin/NSCLC_Dataset/LUAD/PHENO/survival/TCGA-LUAD.survival.tsv",
+#                            header = TRUE,
+#                            sep = "\t",
+#                            row.names = 1,
+#                            quote = "",    # 禁用引号解析
+#                            fill = TRUE,   # 允许填充缺失列
+#                            check.names = FALSE)  # 保留列名中的特殊字符
+# lusc_survial <- read.table("/home/data/yanbin/NSCLC_Dataset/LUSC/PHENO/survival/TCGA-LUSC.survival.tsv",
+#                            header = TRUE,
+#                            sep = "\t",
+#                            row.names = 1,
+#                            quote = "",    # 禁用引号解析
+# #                            fill = TRUE,   # 允许填充缺失列
+# #                            check.names = FALSE)  # 保留列名中的特殊字符
+# #合并数据
+# survial.data <- rbind(luad_survial,lusc_survial)
+# #筛选551个样本的数据
+# commonsample.survival <- survial.data
+# commonsample.survival <- as.data.frame(t(commonsample.survival))
+# colnames(commonsample.survival) <- substr(colnames(commonsample.survival), start = 1, stop = 15)
+# valid_samples <- intersect(
+#   colnames(commonsample.survival),  
+#   common_samples              
+# )
+# if (length(valid_samples) > 0) {
+#   commonsample.survival <- commonsample.survival[, valid_samples, drop=FALSE]
+#   commonsample.survival <- as.data.frame(t(commonsample.survival))
+# } else {
+#   stop("错误：无共同样本。检查样本名格式是否一致。")
+# }
+# 
+# 
+# #合并临床与生存数据
+# commonsample.clinical <- rownames_to_column(commonsample.clinical, var = "SampleID")
+# commonsample.survival <- rownames_to_column(commonsample.survival, var = "SampleID")
+# 
+# commonsamples.clinical.merge <- merge(
+#   x = commonsample.clinical,
+#   y = commonsample.survival,
+#   by="SampleID", # 按行名（样本ID）合并
+#   all.x = TRUE        # 保留所有临床数据样本（左连接）
+# )
+# rownames(commonsamples.clinical.merge) <- commonsamples.clinical.merge$SampleID  # 恢复行名
+# commonsamples.clinical.merge$SampleID <- NULL                   # 移除合并产生的冗余列
+# commonsamples.clinical.merge <- commonsamples.clinical.merge[common_samples,]
+# all(rownames(GEXP.cluster.res) == rownames(commonsamples.clinical.merge))  #检查行顺序
+# #保存
+# #save(commonsamples.clinical.merge,file="commonsamples.clinical.merge.rda")
 
 
-#合并临床与生存数据
-commonsample.clinical <- rownames_to_column(commonsample.clinical, var = "SampleID")
-commonsample.survival <- rownames_to_column(commonsample.survival, var = "SampleID")
 
-commonsamples.clinical.merge <- merge(
-  x = commonsample.clinical,
-  y = commonsample.survival,
-  by="SampleID", # 按行名（样本ID）合并
-  all.x = TRUE        # 保留所有临床数据样本（左连接）
-)
-rownames(commonsamples.clinical.merge) <- commonsamples.clinical.merge$SampleID  # 恢复行名
-commonsamples.clinical.merge$SampleID <- NULL                   # 移除合并产生的冗余列
-commonsamples.clinical.merge <- commonsamples.clinical.merge[common_samples,]
-all(rownames(GEXP.cluster.res) == rownames(commonsamples.clinical.merge))  #检查行顺序
-#保存
-#save(commonsamples.clinical.merge,file="commonsamples.clinical.merge.rda")
-
+# 7种分型与临床特征的关联矩阵热图 --------------------------------------------------------
 #合并7种聚类结果与选定的临床数据列
 intergration.cluster <- cbind(cmoic.cluster.res,GEXP.cluster.res)
 intergration.cluster <- cbind(intergration.cluster,MUTA.cluster.res)
@@ -158,9 +169,9 @@ intergration.cluster <- cbind(intergration.cluster,CN.cluster.res)
 intergration.cluster <- cbind(intergration.cluster,MET.cluster.res)
 intergration.cluster <- cbind(intergration.cluster,PROT.cluster.res)
 intergration.cluster <- cbind(intergration.cluster,TME.cluster.res)
-intergration.cluster$gender <- commonsamples.clinical.merge$gender.demographic
-intergration.cluster$project_id <- commonsamples.clinical.merge$project_id.project
-intergration.cluster$pathologic_stage <- commonsamples.clinical.merge$ajcc_pathologic_stage.diagnoses
+intergration.cluster$gender <- commonsample.clinical$gender.demographic
+intergration.cluster$project_id <- commonsample.clinical$project_id.project
+intergration.cluster$pathologic_stage <- commonsample.clinical$ajcc_pathologic_stage.diagnoses
 
 #stage_counts <- table(intergration.cluster$stage)
 #  stage_counts 
@@ -182,7 +193,7 @@ intergration.cluster[] <- lapply(intergration.cluster, function(col) {
   col[trimws(col) == ""] <- "unknown"
   return(col)
 })
-
+#write.csv(intergration.cluster,file="intergration.cluster.csv")
 #对样本排序
 intergration.cluster <- intergration.cluster[order(intergration.cluster$gender), ]
 intergration.cluster <- intergration.cluster[order(intergration.cluster$project_id), ]
@@ -196,10 +207,9 @@ intergration.cluster <- intergration.cluster[order(intergration.cluster$`PROT cl
 intergration.cluster <- intergration.cluster[order(intergration.cluster$`TME clusters`), ]
 
 
-
 #设置颜色
 cluster_colors <- list(
-  "MOVICS clusters" = c("1" = "#66C2A5", "2" = "#B15928", "3" = "#FB8072", "4" = "#FFD700","5"="#6A3D9A"),
+  "MOVICS clusters" = c("1" = "#2EC4B6", "2" = "#E71D36", "3" = "#FF9F1C", "4" =  "#BDD5EA","5"="#FFA5BA"),
   "GEXP clusters" = c("1" = "#1F77B4", "2" = "#FF7F0E", "3" = "#2CA02C", "4" = "#D62728"),
   "MUT clusters" = c("1" = "#BCBD22", "2" = "#E377C2", "3" = "#7F7F7F", "4" = "#8C564B" ),
   "CNV clusters" = c("1" = "#9467BD", "2" = "#C5B0D5", "3" = "#17BECF", "4" = "#FF9896", "5" = "#AEC7E8"),
@@ -227,8 +237,8 @@ anno_list <- lapply(c( "MOVICS clusters","GEXP clusters", "MUT clusters", "CNV c
     col = setNames(list(cluster_colors[[col_name]]), col_name),
     show_legend = FALSE,  # 后续统一添加图例
     annotation_name_side = "left",
-    annotation_name_gp = gpar(fontsize = 10),
-    simple_anno_size = unit(0.6, "cm")  # 条带高度
+    annotation_name_gp = gpar(fontsize = 12),
+    simple_anno_size = unit(1, "cm")  # 条带高度
   )
 })
 # 组合所有注释条
@@ -242,14 +252,14 @@ legend_list <- lapply(legend_order, function(omics) {
     title = omics,
     labels = names(cluster_colors[[omics]]),
     legend_gp = gpar(fill = cluster_colors[[omics]]),
-    title_gp = gpar(fontsize = 10),
-    labels_gp = gpar(fontsize = 8)
+    title_gp = gpar(fontsize = 12),
+    labels_gp = gpar(fontsize = 10)
   )
 })
 
 # 绘制图形
 setwd("~/NSCLC_subtyping/INTERGRATION AND ANALYSIS/")
-pdf("intergration of 7 omics clusters.pdf", width = 12, height = 8)
+pdf("intergration of 7 omics clusters.pdf", width = 16, height = 12)
 draw(
   ht,
   heatmap_legend_list = legend_list,
@@ -258,6 +268,448 @@ draw(
 
 )
 dev.off()
+
+
+# 绘制百分比柱状图 ----------------------------------------------------------------
+setwd("~/NSCLC_subtyping/INTERGRATION AND ANALYSIS/Percent Stacked Barplot")
+#1.MET clusters
+#数据准备
+met_cluster_data <- data.frame(
+  Group = rep(c("LUAD_male", "LUAD_female", "LUSC_male", "LUSC_female"), each = 4),
+  MET_clusters = rep(1:4, times = 4),
+  Value = c(0,133,0,5,     # LUAD_male
+            160,4,2,1,     # LUAD_female
+            1,14,0,171,    # LUSC_male
+            11,0,46,3)     # LUSC_female
+)
+#计算百分比（按MET_cluster分组计算）
+met_cluster_data <- met_cluster_data %>%
+  group_by(MET_clusters) %>%
+  mutate(
+    Total = sum(Value),
+    Percentage = ifelse(Total > 0, round(Value/Total*100, 1), 0)
+  ) %>%
+  ungroup()
+# 绘制百分比柱状图
+ggplot(met_cluster_data, 
+       aes(x = factor(MET_clusters), 
+           y = Percentage, 
+           fill = Group)) +
+  geom_col(width = 0.7, 
+           color = "white", 
+           linewidth = 0.3) +  # 白色分隔线
+  geom_text(
+  #aes(label = sprintf("%.1f%%", Percentage)), 
+            aes(
+              label = ifelse(Percentage > 0, sprintf("%.1f%%", Percentage), ""),
+              y = ifelse(Percentage <5, Percentage + 0.3, Percentage)  # 小占比标签微调位置
+            ),# 显示一位小数
+             position = position_stack(vjust = 0.5),
+            color = "black",
+             size = 6) +
+  scale_fill_manual(
+    values = c(
+      "LUAD_male" = "#ACCAEB",    
+      "LUAD_female" = "#E1929D",  
+      "LUSC_male" = "#8AB17C",    
+      "LUSC_female" = "#E66D50"  
+    ),
+    breaks = c("LUAD_male", "LUAD_female", "LUSC_male", "LUSC_female") # 控制图例顺序
+  )+
+  labs(
+    title = "MET Clusters Composition by TCGA_Project and Sex",
+    x = "MET Cluster",
+    y = "Percentage (%)",
+    fill = "Group"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) + # 优化Y轴间距
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    legend.title = element_text(size = 12, face = "bold"),  # 图例标题（如 "group"）
+    legend.text = element_text(size = 10),  
+    panel.grid.major.x = element_blank(),
+    legend.position = "right",
+    axis.line = element_line(color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),  # X轴刻度标签
+    axis.text.y = element_text(size = 14, color = "black"),  # Y轴刻度标签
+    panel.background = element_rect(fill = "white"),  # 背景设为纯白
+    plot.background = element_rect(fill = "white")     # 整体绘图区白背景（防止导出时留灰边）
+  )
+ggsave("met_clusters_percent_barplot.png",width = 12,height = 12,dpi = 600)
+
+#2.MOVICS clusters
+#数据准备
+movics_cluster_data <- data.frame(
+  Project_id = rep(c("TCGA_LUAD", "TCGA_LUSC"), each = 5),
+  MOVICS_clusters = rep(1:5, times = 2),
+  Value = c(7,4,123,114,57,     # LUAD
+            109,109,17,11,0     #LUSC
+             )    
+)
+#计算百分比
+movics_cluster_data <- movics_cluster_data %>%
+  group_by(MOVICS_clusters) %>%
+  mutate(
+    Total = sum(Value),
+    Percentage = ifelse(Total > 0, round(Value/Total*100, 1), 0)
+  ) %>%
+  ungroup()
+# 绘制百分比柱状图
+ggplot(movics_cluster_data, 
+       aes(x = factor(MOVICS_clusters), 
+           y = Percentage, 
+           fill = Project_id)) +
+  geom_col(width = 0.7, 
+           color = "white", 
+           linewidth = 0.3) +  # 白色分隔线
+  geom_text(aes(
+    label = ifelse(Percentage > 0, sprintf("%.1f%%", Percentage), "") ),# 显示一位小数
+            position = position_stack(vjust = 0.5),
+            color = "black",
+            size = 6) +
+  scale_fill_manual(
+    values = c(
+      "TCGA_LUAD" = "#FCE9AC",    
+      "TCGA_LUSC" = "#C7B0C7"
+    ),
+    breaks = c("TCGA_LUAD", "TCGA_LUSC") # 控制图例顺序
+  )+
+  labs(
+    title = "MOVICS Clusters Composition by TCGA_Project",
+    x = "MOVICS Cluster",
+    y = "Percentage (%)",
+    fill = "Project_id"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) + # 优化Y轴间距
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    legend.title = element_text(size = 12, face = "bold"),  # 图例标题（如 "group"）
+    legend.text = element_text(size = 10),  
+    panel.grid.major.x = element_blank(),
+    legend.position = "right",
+    axis.line = element_line(color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),  # X轴刻度标签
+    axis.text.y = element_text(size = 14, color = "black"),  # Y轴刻度标签
+    panel.background = element_rect(fill = "white"),  # 背景设为纯白
+    plot.background = element_rect(fill = "white")     # 整体绘图区白背景（防止导出时留灰边）
+  )
+ggsave("movics_clusters_percent_barplot.png",width = 12,height = 12,dpi = 600)
+
+
+#3.GEXP clusters
+#数据准备
+gexp_cluster_data <- data.frame(
+  Project_id = rep(c("TCGA_LUAD", "TCGA_LUSC"), each =4),
+  GEXP_clusters = rep(1:4, times = 2),
+  Value = c(132,13,158,2,     # LUAD
+            16,221,12,0    #LUSC
+  )    
+)
+#计算百分比
+gexp_cluster_data <- gexp_cluster_data %>%
+  group_by(GEXP_clusters) %>%
+  mutate(
+    Total = sum(Value),
+    Percentage = ifelse(Total > 0, round(Value/Total*100, 1), 0)
+  ) %>%
+  ungroup()
+# 绘制百分比柱状图
+ggplot(gexp_cluster_data, 
+       aes(x = factor(GEXP_clusters), 
+           y = Percentage, 
+           fill = Project_id)) +
+  geom_col(width = 0.7, 
+           color = "white", 
+           linewidth = 0.3) +  # 白色分隔线
+  geom_text(aes(
+    label = ifelse(Percentage > 0, sprintf("%.1f%%", Percentage), "") ),# 显示一位小数
+            position = position_stack(vjust = 0.5),
+            color = "black",
+            size = 6) +
+  scale_fill_manual(
+    values = c(
+      "TCGA_LUAD" = "#FCE9AC",    
+      "TCGA_LUSC" = "#C7B0C7"
+    ),
+    breaks = c("TCGA_LUAD", "TCGA_LUSC") # 控制图例顺序
+  )+
+  labs(
+    title = "GEXP Clusters Composition by TCGA_Project",
+    x = "GEXP Cluster",
+    y = "Percentage (%)",
+    fill = "Project_id"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) + # 优化Y轴间距
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    legend.title = element_text(size = 12, face = "bold"),  # 图例标题（如 "group"）
+    legend.text = element_text(size = 10),  
+    panel.grid.major.x = element_blank(),
+    legend.position = "right",
+    axis.line = element_line(color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),  # X轴刻度标签
+    axis.text.y = element_text(size = 14, color = "black"),  # Y轴刻度标签
+    panel.background = element_rect(fill = "white"),  # 背景设为纯白
+    plot.background = element_rect(fill = "white")     # 整体绘图区白背景（防止导出时留灰边）
+  )
+ggsave("gexp_clusters_percent_barplot.png",width = 12,height = 12,dpi = 600)
+
+
+#4.MUTA clusters
+#数据准备
+mut_cluster_data <- data.frame(
+  Project_id = rep(c("TCGA_LUAD", "TCGA_LUSC"), each =4),
+  MUT_clusters = rep(1:4, times = 2),
+  Value = c(75,89,114,27,     # LUAD
+            162,39,45,0    #LUSC
+  )    
+)
+#计算百分比
+mut_cluster_data <- mut_cluster_data %>%
+  group_by(MUT_clusters) %>%
+  mutate(
+    Total = sum(Value),
+    Percentage = ifelse(Total > 0, round(Value/Total*100, 1), 0)
+  ) %>%
+  ungroup()
+# 绘制百分比柱状图
+ggplot(mut_cluster_data, 
+       aes(x = factor(MUT_clusters), 
+           y = Percentage, 
+           fill = Project_id)) +
+  geom_col(width = 0.7, 
+           color = "white", 
+           linewidth = 0.3) +  # 白色分隔线
+  geom_text(aes(label = ifelse(Percentage > 0, sprintf("%.1f%%", Percentage), "") ),# 显示一位小数
+            position = position_stack(vjust = 0.5),
+            color = "black",
+            size = 6) +
+  scale_fill_manual(
+    values = c(
+      "TCGA_LUAD" = "#FCE9AC",    
+      "TCGA_LUSC" = "#C7B0C7"
+    ),
+    breaks = c("TCGA_LUAD", "TCGA_LUSC") # 控制图例顺序
+  )+
+  labs(
+    title = "MUT Clusters Composition by TCGA_Project",
+    x = "MUT Cluster",
+    y = "Percentage (%)",
+    fill = "Project_id"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) + # 优化Y轴间距
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    legend.title = element_text(size = 12, face = "bold"),  # 图例标题（如 "group"）
+    legend.text = element_text(size = 10),  
+    panel.grid.major.x = element_blank(),
+    legend.position = "right",
+    axis.line = element_line(color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),  # X轴刻度标签
+    axis.text.y = element_text(size = 14, color = "black"),  # Y轴刻度标签
+    panel.background = element_rect(fill = "white"),  # 背景设为纯白
+    plot.background = element_rect(fill = "white")     # 整体绘图区白背景（防止导出时留灰边）
+  )
+ggsave("mut_clusters_percent_barplot.png",width = 12,height = 12,dpi = 600)
+
+
+#5.CNV clusters
+#数据准备
+cnv_cluster_data <- data.frame(
+  Project_id = rep(c("TCGA_LUAD", "TCGA_LUSC"), each =5),
+  CNV_clusters = rep(1:5, times = 2),
+  Value = c(113,86,44,49,13,     # LUAD
+            93,12,15,18,137    #LUSC
+  )    
+)
+#计算百分比
+cnv_cluster_data <- cnv_cluster_data %>%
+  group_by(CNV_clusters) %>%
+  mutate(
+    Total = sum(Value),
+    Percentage = ifelse(Total > 0, round(Value/Total*100, 1), 0)
+  ) %>%
+  ungroup()
+# 绘制百分比柱状图
+ggplot(cnv_cluster_data, 
+       aes(x = factor(CNV_clusters), 
+           y = Percentage, 
+           fill = Project_id)) +
+  geom_col(width = 0.7, 
+           color = "white", 
+           linewidth = 0.3) +  # 白色分隔线
+  geom_text(aes(label = ifelse(Percentage > 0, sprintf("%.1f%%", Percentage), "") ),# 显示一位小数,  # 显示一位小数
+            position = position_stack(vjust = 0.5),
+            color = "black",
+            size = 6) +
+  scale_fill_manual(
+    values = c(
+      "TCGA_LUAD" = "#FCE9AC",    
+      "TCGA_LUSC" = "#C7B0C7"
+    ),
+    breaks = c("TCGA_LUAD", "TCGA_LUSC") # 控制图例顺序
+  )+
+  labs(
+    title = "CNV Clusters Composition by TCGA_Project",
+    x = "CNV Cluster",
+    y = "Percentage (%)",
+    fill = "Project_id"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) + # 优化Y轴间距
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    legend.title = element_text(size = 12, face = "bold"),  # 图例标题（如 "group"）
+    legend.text = element_text(size = 10),  
+    panel.grid.major.x = element_blank(),
+    legend.position = "right",
+    axis.line = element_line(color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),  # X轴刻度标签
+    axis.text.y = element_text(size = 14, color = "black"),  # Y轴刻度标签
+    panel.background = element_rect(fill = "white"),  # 背景设为纯白
+    plot.background = element_rect(fill = "white")     # 整体绘图区白背景（防止导出时留灰边）
+  )
+ggsave("cnv_clusters_percent_barplot.png",width = 12,height = 12,dpi = 600)
+
+
+
+#6.PROT clusters
+#数据准备
+prot_cluster_data <- data.frame(
+  Project_id = rep(c("TCGA_LUAD", "TCGA_LUSC"), each =4),
+  PROT_clusters = rep(1:4, times = 2),
+  Value = c(85,188,31,1,     # LUAD
+            89,25,129,2    #LUSC
+  )    
+)
+#计算百分比
+prot_cluster_data <- prot_cluster_data %>%
+  group_by(PROT_clusters) %>%
+  mutate(
+    Total = sum(Value),
+    Percentage = ifelse(Total > 0, round(Value/Total*100, 1), 0)
+  ) %>%
+  ungroup()
+# 绘制百分比柱状图
+ggplot(prot_cluster_data, 
+       aes(x = factor(PROT_clusters), 
+           y = Percentage, 
+           fill = Project_id)) +
+  geom_col(width = 0.7, 
+           color = "white", 
+           linewidth = 0.3) +  # 白色分隔线
+  geom_text(aes(label = ifelse(Percentage > 0, sprintf("%.1f%%", Percentage), "") ),# 显示一位小数  
+            position = position_stack(vjust = 0.5),
+            color = "black",
+            size = 6) +
+  scale_fill_manual(
+    values = c(
+      "TCGA_LUAD" = "#FCE9AC",    
+      "TCGA_LUSC" = "#C7B0C7"
+    ),
+    breaks = c("TCGA_LUAD", "TCGA_LUSC") # 控制图例顺序
+  )+
+  labs(
+    title = "PROT Clusters Composition by TCGA_Project",
+    x = "PROT Cluster",
+    y = "Percentage (%)",
+    fill = "Project_id"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) + # 优化Y轴间距
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    legend.title = element_text(size = 12, face = "bold"),  # 图例标题（如 "group"）
+    legend.text = element_text(size = 10),  
+    panel.grid.major.x = element_blank(),
+    legend.position = "right",
+    axis.line = element_line(color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),  # X轴刻度标签
+    axis.text.y = element_text(size = 14, color = "black"),  # Y轴刻度标签
+    panel.background = element_rect(fill = "white"),  # 背景设为纯白
+    plot.background = element_rect(fill = "white")     # 整体绘图区白背景（防止导出时留灰边）
+  )
+ggsave("prot_clusters_percent_barplot.png",width = 12,height = 12,dpi = 600)
+
+
+#7.TME clusters
+#数据准备
+tme_cluster_data <- data.frame(
+  Project_id = rep(c("TCGA_LUAD", "TCGA_LUSC"), each =4),
+  TME_clusters = rep(1:4, times = 2),
+  Value = c(137,27,122,19,     # LUAD
+            111,32,51,51    #LUSC
+  )    
+)
+#计算百分比
+tme_cluster_data <- tme_cluster_data %>%
+  group_by(TME_clusters) %>%
+  mutate(
+    Total = sum(Value),
+    Percentage = ifelse(Total > 0, round(Value/Total*100, 1), 0)
+  ) %>%
+  ungroup()
+# 绘制百分比柱状图
+ggplot(tme_cluster_data, 
+       aes(x = factor(TME_clusters), 
+           y = Percentage, 
+           fill = Project_id)) +
+  geom_col(width = 0.7, 
+           color = "white", 
+           linewidth = 0.3) +  # 白色分隔线
+  geom_text(aes(label = ifelse(Percentage > 0, sprintf("%.1f%%", Percentage), "") ),# 显示一位小数
+            position = position_stack(vjust = 0.5),
+            color = "black",
+            size = 6) +
+  scale_fill_manual(
+    values = c(
+      "TCGA_LUAD" = "#FCE9AC",    
+      "TCGA_LUSC" = "#C7B0C7"
+    ),
+    breaks = c("TCGA_LUAD", "TCGA_LUSC") # 控制图例顺序
+  )+
+  labs(
+    title = "TME Clusters Composition by TCGA_Project",
+    x = "TME Cluster",
+    y = "Percentage (%)",
+    fill = "Project_id"
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) + # 优化Y轴间距
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    legend.title = element_text(size = 12, face = "bold"),  # 图例标题（如 "group"）
+    legend.text = element_text(size = 10),  
+    panel.grid.major.x = element_blank(),
+    legend.position = "right",
+    axis.line = element_line(color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),  # X轴刻度标签
+    axis.text.y = element_text(size = 14, color = "black"),  # Y轴刻度标签
+    panel.background = element_rect(fill = "white"),  # 背景设为纯白
+    plot.background = element_rect(fill = "white")     # 整体绘图区白背景（防止导出时留灰边）
+  )
+ggsave("tme_clusters_percent_barplot.png",width = 12,height = 12,dpi = 600)
+
+
+# 生存分析 --------------------------------------------------------------------
+# all(rownames(cmoic.nsclc) == rownames(commonsample.survival ))  
+# surv.intergration <- data.frame(
+#   OS.time  = as.numeric(commonsample.survival$OS.time),  # 生存时间（天）
+#   OS.stat   = as.numeric(commonsample.survival$OS),       # 生存状态（0/1）
+#   PFI.time = as.numeric(commonsample.survival$PFI.time),
+#   PFI.stat =as.numeric(commonsample.survival$PFI),
+#   cluster = cmoic.nsclc$clust.res$clust,                       # 分子亚型（CS1-CS5）
+#   stage   = commonsample.clinical$ajcc_pathologic_stage.diagnoses,  # 临床分期（Stage I-IV）
+#   row.names = rownames(commonsample.survival)
+# )
+# surv.info$OS.time_month <- surv.info$OS.time / 30.4368  # 使用365/12≈30.4368天/月的精确转换
+# surv.info$PFI.time_month <- surv.info$PFI.time / 30.4368  # 使用365/12≈30.4368天/月的精确转换
+
+
 
 
 
